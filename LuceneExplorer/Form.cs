@@ -187,8 +187,14 @@ namespace LuceneExplorer
          */
         private void listView_DoubleClick_1(object sender, EventArgs e)
         {
-            currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
-            OpenDirectory();
+            if (listView.SelectedItems[0].Tag.GetType() == typeof(DirectoryInfo)) {
+                MessageBox.Show("This is folder");
+            } 
+            else
+            {
+                MessageBox.Show("This is file");
+            }
+            // OpenDirectory();
         }
 
         /*
