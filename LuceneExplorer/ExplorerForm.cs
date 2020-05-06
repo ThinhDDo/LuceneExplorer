@@ -11,11 +11,11 @@ using System.Windows.Forms;
 
 namespace LuceneExplorer
 {
-    public partial class Form : System.Windows.Forms.Form
+    public partial class ExplorerForm : System.Windows.Forms.Form
     {
         DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại
 
-        public Form()
+        public ExplorerForm()
         {
             InitializeComponent();
             PopulateTreeView();
@@ -29,14 +29,14 @@ namespace LuceneExplorer
         {
             // Thêm danh sách các icon
             treeView.ImageList = new ImageList();
-            treeView.ImageList.Images.Add(new Icon("Icons/mycomputer.ico"));
-            treeView.ImageList.Images.Add(new Icon("Icons/drive.ico"));
-            treeView.ImageList.Images.Add(new Icon("Icons/folder_close.ico"));
-            treeView.ImageList.Images.Add(new Icon("Icons/folder_open.ico"));
-            treeView.ImageList.Images.Add(new Icon("Icons/document.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\mycomputer.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\drive.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\folder_close.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\folder_open.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\document.ico"));
 
-            listView.SmallImageList.Images.Add(new Icon("Icons/folder_close.ico"));
-            listView.SmallImageList.Images.Add(new Icon("Icons/document.ico"));
+            listView.SmallImageList.Images.Add(new Icon(@"..\..\resources\icons\folder_close.ico"));
+            listView.SmallImageList.Images.Add(new Icon(@"..\..\resources\icons\document.ico"));
         }
 
         private void PopulateTreeView()
@@ -218,6 +218,17 @@ namespace LuceneExplorer
                     contextmenu_listview_options.Show(Cursor.Position);
                 }
             }
+        }
+
+        /**
+         * Hiển thị Menu Option để tuỳ chỉnh đánh chỉ mục
+         * Default Index Folder: ....
+         */
+        private void indexingOptions_ToolStrip_Click(object sender, EventArgs e)
+        {
+            IndexingOptions_Form fIndexOption = new IndexingOptions_Form();
+            fIndexOption.ShowDialog();
+            this.Show();
         }
     }
 }
