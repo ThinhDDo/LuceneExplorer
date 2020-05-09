@@ -45,6 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="database\DbAccess.cs" />
+    <Compile Include="database\DbConfiguration.cs" />
     <Compile Include="ExplorerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -57,6 +59,7 @@
     <Compile Include="IndexingOptions_Form.Designer.cs">
       <DependentUpon>IndexingOptions_Form.cs</DependentUpon>
     </Compile>
+    <Compile Include="models\FileType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ExplorerForm.resx">
@@ -86,6 +89,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="resources\filetypes\file_01.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

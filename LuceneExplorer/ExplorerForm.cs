@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LuceneExplorer.database;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,8 +20,6 @@ namespace LuceneExplorer
         {
             InitializeComponent();
             PopulateTreeView();
-
-            //this.treeView.NodeMouseClick += new TreeNodeMouseClickEventHandler(this.treeView_NodeMouseClick);
 
             Load_ImagesList();
         }
@@ -66,7 +65,7 @@ namespace LuceneExplorer
 
         private void toolStrip_Address_Resize(object sender, EventArgs e)
         {
-            toolStripTextBox_Address.Width = this.Width - toolStripLabel_Address.Bounds.Width - toolStripButton_Go.Bounds.Width - 35;
+            txt_Address.Width = this.Width - toolStripLabel_Address.Bounds.Width - toolStripButton_Go.Bounds.Width - 35;
         }
 
         private void toolStripTextBox_Search_Click(object sender, EventArgs e)
@@ -91,9 +90,12 @@ namespace LuceneExplorer
             TreeNode selectedNode = treeView.SelectedNode;
             if (selectedNode.Tag.GetType() == typeof(DirectoryInfo)) // Kiểm tra Node hiện tại có phải là Thư mục hay không
             {
+                // Hiển thị địa chỉ lên Address Bar textbox
+                txt_Address.Text = selectedNode.FullPath.Replace("This PC\\", "").Replace(@"\\", @"\");
+
                 // Bỏ chọn node trước đó
                 selectedNode.Nodes.Clear();
-
+                
                 // Thêm các node vào thư mục con
                 DirectoryInfo dir = (DirectoryInfo)selectedNode.Tag;
 
