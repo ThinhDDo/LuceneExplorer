@@ -1,15 +1,18 @@
 ﻿using LuceneExplorer.database;
+using Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Interop.Word;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
+using Icon = System.Drawing.Icon;
+using Color = System.Drawing.Color;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace LuceneExplorer
 {
@@ -196,12 +199,21 @@ namespace LuceneExplorer
             } 
             else
             {
-                // FileInfo
+                // Current FileInfo Data 
                 currentFileInfo = (FileInfo)listView.SelectedItems[0].Tag;
+                if (currentFileInfo.Exists && (currentFileInfo.Extension.Equals(".docx") || currentFileInfo.Extension.Equals(".doc"))) {
 
-                Microsoft.Office.Interop.Word.Application ap = new Microsoft.Office.Interop.Word.Application();
-                Document document = ap.Documents.Open(currentFileInfo.FullName);
-                ap.Visible = true;
+                    Microsoft.Office.Interop.Word.Application word = new Microsoft.Office.Interop.Word.Application();
+                    Document document = word.Documents.Open(currentFileInfo.FullName);
+                    word.Visible = true;
+                }
+                else if(currentFileInfo.Exists && (currentFileInfo.Extension.Equals(".xlsx") || currentFileInfo.Extension.Equals(".xls")))
+                {
+                    Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application();
+                    Workbook document = excel.Workbooks.Open(currentFileInfo.FullName);
+                    excel.Visible = true;
+                }
+                
             }
             // OpenDirectory();
         }
@@ -238,6 +250,11 @@ namespace LuceneExplorer
             IndexingOptions_Form fIndexOption = new IndexingOptions_Form();
             fIndexOption.ShowDialog();
             this.Show();
+        }
+
+        private void refreshToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenDirectory();
         }
     }
 }
