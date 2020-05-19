@@ -137,7 +137,7 @@ namespace LuceneExplorer
         }
 
         /*
-         * Mở danh sách thư mục tương ứng qua ListView
+         * Mở danh sách thư mục tương ứng qua ListView BRUH
          */
         private void OpenDirectory()
         {
