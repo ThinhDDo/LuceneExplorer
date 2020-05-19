@@ -13,6 +13,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
+using Microsoft.Office.Interop.PowerPoint;
+using Microsoft.Office.Core;
 
 namespace LuceneExplorer
 {
@@ -201,19 +203,30 @@ namespace LuceneExplorer
             {
                 // Current FileInfo Data 
                 currentFileInfo = (FileInfo)listView.SelectedItems[0].Tag;
-                if (currentFileInfo.Exists && (currentFileInfo.Extension.Equals(".docx") || currentFileInfo.Extension.Equals(".doc"))) {
+                if (currentFileInfo.Exists && (currentFileInfo.Extension.Equals(".docx") || currentFileInfo.Extension.Equals(".doc")))
+                {
 
                     Microsoft.Office.Interop.Word.Application word = new Microsoft.Office.Interop.Word.Application();
                     Document document = word.Documents.Open(currentFileInfo.FullName);
                     word.Visible = true;
                 }
-                else if(currentFileInfo.Exists && (currentFileInfo.Extension.Equals(".xlsx") || currentFileInfo.Extension.Equals(".xls")))
+                else if (currentFileInfo.Exists && (currentFileInfo.Extension.Equals(".xlsx") || currentFileInfo.Extension.Equals(".xls")))
                 {
                     Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application();
                     Workbook document = excel.Workbooks.Open(currentFileInfo.FullName);
                     excel.Visible = true;
                 }
-                
+                else if (currentFileInfo.Exists && (currentFileInfo.Extension.Equals(".pptx") || currentFileInfo.Extension.Equals(".ppt")))
+                {
+                    Microsoft.Office.Interop.PowerPoint.Application pp = new Microsoft.Office.Interop.PowerPoint.Application();
+                    Presentation document = pp.Presentations.Open(currentFileInfo.FullName, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoTrue);
+                    pp.Visible = MsoTriState.msoTrue;
+
+                }
+                else if(){
+
+                }
+
             }
             // OpenDirectory();
         }
@@ -252,7 +265,7 @@ namespace LuceneExplorer
             this.Show();
         }
 
-        private void refreshToolStripMenuItem_Click(object sender, EventArgs e)
+        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             OpenDirectory();
         }
