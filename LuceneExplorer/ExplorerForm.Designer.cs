@@ -66,7 +66,6 @@
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.contextmenu_listview_options = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.refreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripButton10 = new System.Windows.Forms.ToolStripButton();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -152,6 +151,7 @@
             this.toolStrip1.Size = new System.Drawing.Size(800, 33);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
+            this.toolStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.toolStrip1_ItemClicked);
             // 
             // toolStripButton1
             // 
@@ -374,10 +374,9 @@
             // 
             this.contextmenu_listview_options.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.contextmenu_listview_options.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteToolStripMenuItem,
-            this.refreshToolStripMenuItem});
+            this.deleteToolStripMenuItem});
             this.contextmenu_listview_options.Name = "contextmenu_listview_options";
-            this.contextmenu_listview_options.Size = new System.Drawing.Size(128, 52);
+            this.contextmenu_listview_options.Size = new System.Drawing.Size(123, 28);
             // 
             // deleteToolStripMenuItem
             // 
@@ -385,13 +384,6 @@
             this.deleteToolStripMenuItem.Size = new System.Drawing.Size(210, 24);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click_1);
-            // 
-            // refreshToolStripMenuItem
-            // 
-            this.refreshToolStripMenuItem.Name = "refreshToolStripMenuItem";
-            this.refreshToolStripMenuItem.Size = new System.Drawing.Size(210, 24);
-            this.refreshToolStripMenuItem.Text = "Refresh";
-            this.refreshToolStripMenuItem.Click += new System.EventHandler(this.refreshToolStripMenuItem_Click);
             // 
             // toolStripButton10
             // 
@@ -472,7 +464,6 @@
         private System.Windows.Forms.ContextMenuStrip contextmenu_listview_options;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem indexingOptions_ToolStrip;
-        private System.Windows.Forms.ToolStripMenuItem refreshToolStripMenuItem;
         private System.Windows.Forms.ToolStripButton toolStripButton10;
     }
 }
