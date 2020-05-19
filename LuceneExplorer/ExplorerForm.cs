@@ -1,4 +1,5 @@
 ﻿using LuceneExplorer.database;
+using Microsoft.Office.Interop.Word;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,7 +15,7 @@ namespace LuceneExplorer
 {
     public partial class ExplorerForm : System.Windows.Forms.Form
     {
-        DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại
+        DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại //
 
         public ExplorerForm()
         {
@@ -137,7 +138,7 @@ namespace LuceneExplorer
         }
 
         /*
-         * Mở danh sách thư mục tương ứng qua ListView BRUH
+         * Mở danh sách thư mục tương ứng qua ListView
          */
         private void OpenDirectory()
         {
@@ -190,21 +191,24 @@ namespace LuceneExplorer
         private void listView_DoubleClick_1(object sender, EventArgs e)
         {
             if (listView.SelectedItems[0].Tag.GetType() == typeof(DirectoryInfo)) {
-                MessageBox.Show("This is folder");
+                currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
+                OpenDirectory();
             } 
             else
             {
-                MessageBox.Show("This is file");
+                Microsoft.Office.Interop.Word.Application ap = new Microsoft.Office.Interop.Word.Application();
+                Document document = ap.Documents.Open(@"C:\Users\Phi Tran\Documents\test.docx");
+                ap.Visible = true;
             }
             // OpenDirectory();
         }
 
         /*
-         * Xử lý chức năng Delete folder hoặc file
+         * Xử lý chức năng Delete folder hoặc file: Di chuyen vao Recycle Bin
          */
         private void deleteToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
-            currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
+            //currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
             MessageBox.Show(currentDirectory.FullName);
         }
 
