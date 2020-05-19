@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Diagnostics;
 
 namespace LuceneExplorer
 {
@@ -213,7 +214,6 @@ namespace LuceneExplorer
                     Workbook document = excel.Workbooks.Open(currentFileInfo.FullName);
                     excel.Visible = true;
                 }
-                
             }
             // OpenDirectory();
         }
