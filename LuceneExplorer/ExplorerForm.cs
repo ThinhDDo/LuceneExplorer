@@ -15,8 +15,8 @@ namespace LuceneExplorer
 {
     public partial class ExplorerForm : System.Windows.Forms.Form
     {
-        DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại //
-
+        DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại 
+        FileInfo currentFileInfo; // Biến toàn cục cho file chọn hiện tại
         public ExplorerForm()
         {
             InitializeComponent();
@@ -196,8 +196,11 @@ namespace LuceneExplorer
             } 
             else
             {
+                // FileInfo
+                currentFileInfo = (FileInfo)listView.SelectedItems[0].Tag;
+
                 Microsoft.Office.Interop.Word.Application ap = new Microsoft.Office.Interop.Word.Application();
-                Document document = ap.Documents.Open(@"C:\Users\Phi Tran\Documents\test.docx");
+                Document document = ap.Documents.Open(currentFileInfo.FullName);
                 ap.Visible = true;
             }
             // OpenDirectory();

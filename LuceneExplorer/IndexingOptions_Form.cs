@@ -33,7 +33,7 @@ namespace LuceneExplorer
 
         private void SaveListTypes()
         {
-            if(File.Exists(@"..\..\resources\filetypes\file_01.txt"))
+            /*if(File.Exists(@"..\..\resources\filetypes\file_01.txt"))
             {
                 string[] lines = File.ReadAllLines(@"..\..\resources\filetypes\file_01.txt");
                 try
@@ -45,7 +45,7 @@ namespace LuceneExplorer
                 {
                     Console.WriteLine("Lưu type thất bại");
                 }
-            }
+            }*/
             try
             {
                 types = DbAccess.GetTypes();
