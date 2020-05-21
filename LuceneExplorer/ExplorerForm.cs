@@ -221,12 +221,7 @@ namespace LuceneExplorer
                     Microsoft.Office.Interop.PowerPoint.Application pp = new Microsoft.Office.Interop.PowerPoint.Application();
                     Presentation document = pp.Presentations.Open(currentFileInfo.FullName, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoTrue);
                     pp.Visible = MsoTriState.msoTrue;
-
                 }
-                else if(){
-
-                }
-
             }
             // OpenDirectory();
         }

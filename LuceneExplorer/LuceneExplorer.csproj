@@ -108,7 +108,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="resources\filetypes\file_01.txt" />
+    <Content Include="resources\filetypes\file_types.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

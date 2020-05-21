@@ -99,7 +99,7 @@ namespace LuceneExplorer.database
             }
         }
 
-        public static void UpdateType(string type, int isuse)
+        public static void UpdateType(string type, bool isuse)
         {
             using (SqlConnection conn = DbConfiguration.GetDBConnection())
             {

@@ -25,17 +25,34 @@ namespace LuceneExplorer
             PopulateTreeView();
 
             LoadComponents();
-            if(types == null)
+
+            GetListTypes();
+
+            if (types == null)
             {
                 SaveListTypes();
+                GetListTypes();
+            }
+        }
+
+        private void GetListTypes()
+        {
+            try
+            {
+                types = DbAccess.GetTypes();
+                Console.WriteLine("Load danh sách Type thành công");
+            }
+            catch (SqlException sqle)
+            {
+                Console.WriteLine("Load type thất bại");
             }
         }
 
         private void SaveListTypes()
         {
-            /*if(File.Exists(@"..\..\resources\filetypes\file_01.txt"))
+            if (File.Exists(@"..\..\resources\filetypes\file_types.txt"))
             {
-                string[] lines = File.ReadAllLines(@"..\..\resources\filetypes\file_01.txt");
+                string[] lines = File.ReadAllLines(@"..\..\resources\filetypes\file_types.txt");
                 try
                 {
                     DbAccess.setTypes(lines);
@@ -45,15 +62,6 @@ namespace LuceneExplorer
                 {
                     Console.WriteLine("Lưu type thất bại");
                 }
-            }*/
-            try
-            {
-                types = DbAccess.GetTypes();
-                Console.WriteLine("Load danh sách Type thành công");
-            }
-            catch (SqlException sqle)
-            {
-                Console.WriteLine("Load type thất bại");
             }
         }
 
@@ -145,10 +153,10 @@ namespace LuceneExplorer
 
         private void clb_types_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (clb_types.SelectedIndex > -1)
+            /*if (clb_types.SelectedIndex > -1)
             {
                 txt_type.Text = clb_types.Items[clb_types.SelectedIndex] + "";
-            }
+            }*/
         }
 
         private void txt_type_TextChanged(object sender, EventArgs e)
@@ -205,32 +213,13 @@ namespace LuceneExplorer
             int selectedIdx = clb_types.SelectedIndex;
             if (selectedIdx > -1)
             {
-                txt_type.Text = clb_types.Items[selectedIdx] + "";
-                if(clb_types.GetItemChecked(selectedIdx))
-                {
-                    DbAccess.UpdateType(txt_type.Text.Trim(), 0);
+                Console.Write("Item Check: " + clb_types.Items[selectedIdx].ToString() + "\t");
+                Console.WriteLine("Current Check: " + clb_types.GetItemChecked(selectedIdx));
+                Console.WriteLine("Changed Check: " + !clb_types.GetItemChecked(selectedIdx));
+                Console.WriteLine("Item Check: " + clb_types.Items[selectedIdx].ToString());
+                DbAccess.UpdateType(clb_types.Items[selectedIdx].ToString(), !clb_types.GetItemChecked(selectedIdx));
 
-                    clb_types.SetItemChecked(selectedIdx, true);
-
-                    updateList(new FileType(txt_type.Text, true));
-                }
-                else
-                {
-                    DbAccess.UpdateType(txt_type.Text.Trim(), 1);
-
-                    clb_types.SetItemChecked(selectedIdx, true);
-
-                    updateList(new FileType(txt_type.Text, false));
-                }
-            }
-        }
-
-        private void updateList(FileType type)
-        {
-            int idx = types.IndexOf(type);
-            if(idx > -1)
-            {
-                types[idx].IsUse = (!type.IsUse);
+                clb_types.SetItemChecked(selectedIdx, !clb_types.GetItemChecked(selectedIdx));
             }
         }
     }
