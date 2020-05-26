@@ -1,15 +1,12 @@
-﻿using LuceneExplorer.database;
+﻿using LuceneExplorer.config;
+using LuceneExplorer.database;
 using LuceneExplorer.models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace LuceneExplorer
@@ -17,11 +14,17 @@ namespace LuceneExplorer
     public partial class IndexingOptions_Form : Form
     {
         DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại
-        private static List<FileType> types = null;
+        TreeNodeCollection locationsIndex = null;
+        static List<FileType> types = null;
+
+        ArrayList locations = new ArrayList();
 
         public IndexingOptions_Form()
         {
             InitializeComponent();
+
+            lbl_done.Visible = false;
+
             PopulateTreeView();
 
             LoadComponents();
@@ -32,6 +35,55 @@ namespace LuceneExplorer
             {
                 SaveListTypes();
                 GetListTypes();
+            }
+
+            // Danh sách các Locations Index 
+            locations.Add(@"C:\Users\doduy\Downloads");
+            // locations.Add(@"D:\");
+        }
+
+        /*
+         * Hiển thị danh sách các node được check
+         * Default: Truyền tham số là Node chứa thông tin ổ đĩa (vd: C:\, D:\)
+         */
+        private void scanLocationsIndex()
+        {
+            // Hiển thị danh sách Index Locations
+            // Quét ổ đĩa gốc
+            foreach (TreeNode parentNode in treeView_IncludedIndex.Nodes)
+            {
+                GetCheckedNodes(parentNode);
+                if(locationsIndex != null)
+                {
+                    Console.WriteLine("Parent Node: " + parentNode.Name);
+                    foreach (TreeNode node in locationsIndex)
+                    {
+                        Console.WriteLine("\tChild Node: " + node.Name);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Chưa có Locations nào được chọn");
+                }
+            }
+        }
+
+        /*
+         * Sử dụng đệ quy quét các Child Node của TreeView
+         * @Param node: Node parent
+         */
+        private void GetCheckedNodes(TreeNode node)
+        {
+            if(node.Checked)
+            {
+                locationsIndex.Add(node);
+            }
+            else
+            {
+                foreach (TreeNode subNode in node.Nodes)
+                {
+                    GetCheckedNodes(subNode);
+                }
             }
         }
 
@@ -52,7 +104,7 @@ namespace LuceneExplorer
         {
             if (File.Exists(@"..\..\resources\filetypes\file_types.txt"))
             {
-                string[] lines = File.ReadAllLines(@"..\..\resources\filetypes\file_types.txt");
+                string[] lines = File.ReadAllLines(@"..\..\resources\filetypess\file_types.txt");
                 try
                 {
                     DbAccess.setTypes(lines);
@@ -221,6 +273,47 @@ namespace LuceneExplorer
 
                 clb_types.SetItemChecked(selectedIdx, !clb_types.GetItemChecked(selectedIdx));
             }
+        }
+
+        private void btn_rebuild_Click(object sender, EventArgs e)
+        {
+            Thread progressThread = new Thread(() =>
+            {
+                showProgress();
+            });
+            progressThread.Start();
+            LuceneAccess.Initiate(locations);
+            progressBar_Rebuild.Visible = false;
+            lbl_done.Visible = true;
+        }
+
+        private void showProgress()
+        {
+            progressBar_Rebuild.Visible = true;
+        }
+
+        private void treeView_IncludedIndex_AfterCheck(object sender, TreeViewEventArgs e)
+        {
+            /*DirectoryInfo currentDirectoryInfo = (DirectoryInfo)e.Node.Tag;
+            Console.WriteLine(currentDirectoryInfo.FullName, "Node selected");
+            Console.WriteLine("Its child nodes: ");*/
+            if(e.Node.Checked)
+            {
+                locationsIndex.Add(e.Node);
+                foreach (TreeNode node in e.Node.Nodes)
+                {
+                    node.Checked = e.Node.Checked;
+                }
+            }
+            if(!e.Node.Checked && locationsIndex.Contains(e.Node))
+            {
+                locationsIndex.Remove(e.Node);
+            }
+        }
+
+        private void btn_addIndex_Click(object sender, EventArgs e)
+        {
+            
         }
     }
 }

@@ -16,7 +16,7 @@ namespace LuceneExplorer
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new IndexingOptions_Form());
+            Application.Run(new ExplorerForm());
         }
     }
 }

@@ -54,7 +54,7 @@ namespace LuceneExplorer.database
                     {
                         while (sdr.Read())
                         {
-                            Console.WriteLine("{0},{1}", sdr.GetString(0), sdr.GetBoolean(1));
+                            // Console.WriteLine("{0},{1}", sdr.GetString(0), sdr.GetBoolean(1));
                             listType.Add(new FileType(sdr.GetString(0), sdr.GetBoolean(1)));
                         }
                     }
