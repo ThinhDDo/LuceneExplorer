@@ -366,6 +366,7 @@ namespace LuceneExplorer
             }
         }
 
+        //
         private void btn_refresh_Click(object sender, EventArgs e)
         {
             OpenDirectory();
