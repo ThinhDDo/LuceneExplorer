@@ -118,6 +118,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\refresh_btn.png" />
     <None Include="resources\add.png" />
     <None Include="resources\delete.png" />
     <None Include="resources\add1.png" />
