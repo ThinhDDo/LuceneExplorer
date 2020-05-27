@@ -202,7 +202,7 @@ namespace LuceneExplorer
 
         private void Build_Index()
         {
-            rebuilt = LuceneAccess.Initiate(locations);
+            rebuilt = LuceneAccess.Initiate();
             if(rebuilt)
             {
                 this.progressBar_Rebuild.Invoke(new MethodInvoker(delegate

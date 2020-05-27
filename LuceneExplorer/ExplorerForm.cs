@@ -28,7 +28,8 @@ namespace LuceneExplorer
         DirectoryInfo currentDirectory; // Biến toàn cục cho thư muc chọn hiện tại 
         FileInfo currentFileInfo; // Biến toàn cục cho file chọn hiện tại
         string userName = Path.GetFileName(System.Security.Principal.WindowsIdentity.GetCurrent().Name);
-        // Stack stackCurrentPath;
+
+        Stack backStack = new Stack();
 
         public ExplorerForm()
         {
@@ -143,7 +144,10 @@ namespace LuceneExplorer
                 
                 // Thêm các node vào thư mục con
                 DirectoryInfo dir = (DirectoryInfo)selectedNode.Tag;
-              
+
+                // Them stack back
+                backStack.Push(dir.FullName);
+
                 // Lấy tất cả các thư mục, files bằng method: GetDirectories()
                 // Thêm node con vào node hiện tại đang chọn, 
                 // nhấp vào dấu cộng để hiển thị các node con
@@ -186,6 +190,7 @@ namespace LuceneExplorer
          */
         private void OpenDirectory()
         {
+            txt_Address.Text = currentDirectory.FullName;
             // Clear các item hiển thị trên listview trước đó
             listView.Items.Clear();
 
@@ -240,6 +245,7 @@ namespace LuceneExplorer
         private void listView_DoubleClick_1(object sender, EventArgs e)
         {
             if (listView.SelectedItems[0].Tag.GetType() == typeof(DirectoryInfo)) {
+                backStack.Push(currentDirectory.FullName);
                 currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
                 txt_Address.Text = currentDirectory.FullName.Replace("This PC\\", "").Replace(@"\\", @"\");
                 OpenDirectory();
@@ -357,10 +363,13 @@ namespace LuceneExplorer
         private void backButton_Click(object sender, EventArgs e)
         {
             currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
-            // stackCurrentPath.Push(currentDirectory.FullName);
+            stackCurrentPath.Push(currentDirectory.FullName);
             if (btn_back.CheckOnClick == true)
             {
-                //stackcurrentpath.pop();
+                string back = (string)backStack.Pop();
+                DirectoryInfo dirInfo = new DirectoryInfo(back);
+                currentDirectory = dirInfo;
+                OpenDirectory();
             }
         }
 

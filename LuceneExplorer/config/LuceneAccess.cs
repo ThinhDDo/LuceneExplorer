@@ -28,7 +28,7 @@ namespace LuceneExplorer.config
          * 3.. Bộ ghi chỉ mục
          * Thực hiện thu thập dữ liệu: Quét toàn bộ ổ đĩa trên máy tính (exclude: Ổ CD/DVD, External Drives,...)
          */
-        public static bool Initiate(ArrayList locations)
+        public static bool Initiate()
         {
             // Lấy nơi lưu trữ index
             locationIndexSaving = DbAccess.GetLocationByName("Index");
@@ -43,6 +43,7 @@ namespace LuceneExplorer.config
                     using (var indexWriter = new IndexWriter(indexDir, analyzer, IndexWriter.MaxFieldLength.UNLIMITED))
                     {
                         // TODO: Scan các thư mục được chọn để Index
+                        List<Location> locations = DbAccess.GetLocations();
                         ScanLocationsForIndex(locations, analyzer, indexDir, indexWriter);
                     }
                 }
@@ -54,7 +55,7 @@ namespace LuceneExplorer.config
          * Được chạy khi chương trình khởi động
          * Lần thứ 2 chạy nếu thư mục Index đã có dữ liệu không cần chạy
          */
-        public static void ScanLocationsForIndex(ArrayList locations, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter)
+        public static void ScanLocationsForIndex(List<Location> locations, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter)
         {
             // TODO: Lấy danh sách các Locations được chọn để thực hiện Index
             /*foreach (DriveInfo drive in DriveInfo.GetDrives())
@@ -65,12 +66,12 @@ namespace LuceneExplorer.config
                 }
             }*/
 
-            foreach (string location in locations)
+            foreach (Location location in locations)
             {
-                if (!location.Contains(@"RECYCLE.BIN"))
+                if (!location.Path.Contains(@"RECYCLE.BIN"))
                 {
-                    Console.WriteLine("location: " + location);
-                    BuildIndexFolders(location, analyzer, indexDir, indexWriter);
+                    Console.WriteLine("location: " + location.Name);
+                    BuildIndexFolders(location.Path, analyzer, indexDir, indexWriter);
                 }
             }
         }
