@@ -28,8 +28,7 @@ namespace LuceneExplorer
         DirectoryInfo currentDirectory; // Biến toàn cục cho thư muc chọn hiện tại 
         FileInfo currentFileInfo; // Biến toàn cục cho file chọn hiện tại
         string userName = Path.GetFileName(System.Security.Principal.WindowsIdentity.GetCurrent().Name);
-
-        Stack stackCurrentPath;
+        // Stack stackCurrentPath;
 
         public ExplorerForm()
         {
@@ -103,7 +102,7 @@ namespace LuceneExplorer
             // Lấy các ổ đĩa trong máy tính - đưa vào trong root node (This PC)
             foreach (DriveInfo drive in DriveInfo.GetDrives())
             {
-                TreeNode driveNode = new TreeNode(drive.Name); // Tạo node với drive.Name là tên ổ đĩa (vd: C:/)
+                TreeNode driveNode = new TreeNode(drive.VolumeLabel + " " + drive.Name); // Tạo node với drive.Name là tên ổ đĩa (vd: C:/)
                 driveNode.Tag = drive.RootDirectory; // Trả về Thư mục gốc (C:\\ và D:\\)
                 driveNode.ImageIndex = 1;
                 driveNode.SelectedImageIndex = 1;
@@ -353,13 +352,12 @@ namespace LuceneExplorer
             {
                 currentFileInfo = (FileInfo)listView.SelectedItems[0].Tag;
             }
-           
         }
 
         private void backButton_Click(object sender, EventArgs e)
         {
             currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
-            stackCurrentPath.Push(currentDirectory.FullName);
+            // stackCurrentPath.Push(currentDirectory.FullName);
             if (btn_back.CheckOnClick == true)
             {
                 //stackcurrentpath.pop();
@@ -436,15 +434,18 @@ namespace LuceneExplorer
 
         private void btn_newFolder_Click(object sender, EventArgs e)
         {
-            if(Directory.Exists(txt_Address.Text))
+            string newFolderPath = currentDirectory.FullName + "\\New Folder";
+            if (currentDirectory != null && !Directory.Exists(newFolderPath))
             {
-                Directory.CreateDirectory(txt_Address.Text);            
-            }
-            else
+                Directory.CreateDirectory(newFolderPath);
+                OpenDirectory();
+
+                int indexOfFolder = listView.Items.IndexOf(listView.FindItemWithText("New Folder"));
+                listView.Items[indexOfFolder].Focused = true;
+            } else
             {
-                MessageBox.Show("Khong tim thay");
+                MessageBox.Show("Thư mục này đã tồn tại");
             }
-            OpenDirectory();
         }
     }
 }

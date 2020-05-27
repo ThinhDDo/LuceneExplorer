@@ -5,10 +5,12 @@ using Lucene.Net.Search;
 using Lucene.Net.Store;
 using LuceneExplorer.database;
 using LuceneExplorer.models;
+using Spire.Pdf;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Version = Lucene.Net.Util.Version;
 
 namespace LuceneExplorer.config
@@ -88,7 +90,7 @@ namespace LuceneExplorer.config
              * Xoá index cũ: Dùng IndexReader để tìm path trong Index hiện tại. Nếu có: Xoá. Nếu không: Thêm
              */
 
-            document.Add(new Field("Filename", Path.GetFileName(path), Field.Store.YES, Field.Index.ANALYZED));
+            document.Add(new Field("Name", Path.GetFileName(path), Field.Store.YES, Field.Index.ANALYZED));
             document.Add(new Field("Type", "folder", Field.Store.YES, Field.Index.NO)); 
             document.Add(new Field("Path", path, Field.Store.YES, Field.Index.NO)); 
             
@@ -150,8 +152,8 @@ namespace LuceneExplorer.config
                 foreach (var hit in hits)
                 {
                     var foundDoc = search.Doc(hit.Doc);
-                    Console.WriteLine("Folder: {0}, Path: {1}", foundDoc.Get("Filename"), foundDoc.Get("Path"));
-                    results.Add(new Location { Name = foundDoc.Get("Filename"), Path = foundDoc.Get("Path") });
+                    Console.WriteLine("Folder: {0}, Path: {1}", foundDoc.Get("Name"), foundDoc.Get("Path"));
+                    results.Add(new Location { Name = foundDoc.Get("Name"), Path = foundDoc.Get("Path") , Type = foundDoc.Get("Type")});
                 }
                 return results;
                 /*for(int hit_idx=0; hit_idx < hits.Length; hit_idx++)
@@ -167,6 +169,86 @@ namespace LuceneExplorer.config
                     }
                 }*/
             }
+        }
+
+        /**
+         * Đánh chỉ mục cho file:
+         * Nội dung chỉ mục file bao gồm: Name, Path, Type, Content
+         */
+        private static void BuildIndexFiles(string file, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter)
+        {
+            string toText = "";
+            Document document;
+
+            switch (Path.GetExtension(file))
+            {
+                case ".docx":
+                    toText = WordToText(file);
+                    break;
+                case ".pdf":
+                    toText = PdfToText(file);
+                    break;
+                case ".txt":
+                    toText = TxtToText(file);
+                    break;
+            }
+
+            // File Indexing
+            document = new Document();
+
+            document.Add(new Field("Filename", Path.GetFileName(file), Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("Path", file, Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("Content", toText.ToString().Trim().ToLower(), Field.Store.YES, Field.Index.ANALYZED));
+            indexWriter.AddDocument(document);
+
+            indexWriter.Optimize();
+            indexWriter.Flush(false, false, false);
+        }
+
+        private static string PdfToText(string fullName)
+        {
+            PdfDocument doc = new PdfDocument();
+            doc.LoadFromFile(fullName);
+
+            // Initilize StringBuilder Instance
+            StringBuilder toText = new StringBuilder();
+
+            for (int page = 0; page < doc.Pages.Count; page++)
+            {
+                toText.Append(doc.Pages[page].ExtractText());
+            }
+
+            return toText.ToString();
+        }
+
+        private static string TxtToText(string fullName)
+        {
+            StringBuilder toText = new StringBuilder();
+            foreach (string line in File.ReadAllLines(fullName))
+            {
+                toText.AppendLine(line);
+            }
+            return toText.ToString();
+        }
+
+        private static string WordToText(string fullName)
+        {
+            Microsoft.Office.Interop.Word.Application word = new Microsoft.Office.Interop.Word.Application(); // Word APplication
+            Microsoft.Office.Interop.Word.Document doc = word.Documents.Open(fullName);
+            word.Visible = false;
+
+            // Initilize StringBuilder Instance
+            StringBuilder toText = new StringBuilder();
+
+            //Extract Text from Word and Save to StringBuilder Instance
+            foreach (Microsoft.Office.Interop.Word.Section section in doc.Sections)
+            {
+                foreach (Microsoft.Office.Interop.Word.Paragraph paragraph in section.Range.Paragraphs)
+                {
+                    toText.AppendLine(paragraph.Range.Text);
+                }
+            }
+            return toText.ToString();
         }
     }
 }
