@@ -15,6 +15,8 @@ using System.Windows.Forms;
 using System.Drawing;
 using Microsoft.Office.Interop.PowerPoint;
 using Microsoft.Office.Core;
+using LuceneExplorer.config;
+using LuceneExplorer.models;
 
 namespace LuceneExplorer
 {
@@ -22,12 +24,16 @@ namespace LuceneExplorer
     {
         DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại 
         FileInfo currentFileInfo; // Biến toàn cục cho file chọn hiện tại
+        string userName = Path.GetFileName(System.Security.Principal.WindowsIdentity.GetCurrent().Name);
+
         public ExplorerForm()
         {
             InitializeComponent();
             PopulateTreeView();
 
             Load_ImagesList();
+
+            Console.WriteLine(userName);
         }
 
         private void Load_ImagesList()
@@ -39,6 +45,9 @@ namespace LuceneExplorer
             treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\folder_close.ico"));
             treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\folder_open.ico"));
             treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\document.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\quickaccess.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\downloads.ico"));
+            treeView.ImageList.Images.Add(new Icon(@"..\..\resources\icons\documents.ico"));
 
             listView.SmallImageList.Images.Add(new Icon(@"..\..\resources\icons\folder_close.ico"));
             listView.SmallImageList.Images.Add(new Icon(@"..\..\resources\icons\document.ico"));
@@ -46,6 +55,39 @@ namespace LuceneExplorer
 
         private void PopulateTreeView()
         {
+            // Tạo một node root là This PC - hiện các ổ đĩa trong máy tính
+            TreeNode quickAccess = new TreeNode("Quick Access"); // Tạo root node
+            quickAccess.Tag = "Quick Access"; // 
+            quickAccess.ImageIndex = 5; // Chọn image trong image list để hiển thị
+            quickAccess.SelectedImageIndex = 5; // Chọn image trong image list để hiển thị khi ĐƯỢC NHẤN VÀO
+            treeView.Nodes.Add(quickAccess); // Thêm node vào treeview
+    
+            
+            DirectoryInfo userInfo = new DirectoryInfo(@"C:\Users\"+userName);
+            foreach (DirectoryInfo userDirectory in userInfo.GetDirectories())
+            {
+                switch(userDirectory.Name)
+                {
+                    case "Downloads":
+                        TreeNode downloads = new TreeNode("Downloads"); // Tạo root node
+                        downloads.Tag = userDirectory; // 
+                        downloads.ImageIndex = 6; // Chọn image trong image list để hiển thị
+                        downloads.SelectedImageIndex = 6; // Chọn image trong image list để hiển thị khi ĐƯỢC NHẤN VÀO
+                        quickAccess.Nodes.Add(downloads); // Thêm node vào treeview
+                        break;
+                    case "Documents":
+                        TreeNode documents = new TreeNode("Documents"); // Tạo root node
+                        documents.Tag = userDirectory; // 
+                        documents.ImageIndex = 7; // Chọn image trong image list để hiển thị
+                        documents.SelectedImageIndex = 7; // Chọn image trong image list để hiển thị khi ĐƯỢC NHẤN VÀO
+                        quickAccess.Nodes.Add(documents); // Thêm node vào treeview
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // =============================================================================================
             // Tạo một node root là This PC - hiện các ổ đĩa trong máy tính
             TreeNode thisPCNode = new TreeNode("This PC"); // Tạo root node
             thisPCNode.Tag = "This PC"; // 
@@ -74,20 +116,13 @@ namespace LuceneExplorer
             txt_Address.Width = this.Width - toolStripLabel_Address.Bounds.Width - toolStripButton_Go.Bounds.Width - 35;
         }
 
-        private void toolStripTextBox_Search_Click(object sender, EventArgs e)
-        {
-            toolStripTextBox_Search.Clear();
-
-            toolStripTextBox_Search.ForeColor = Color.Black;
-        }
-
         private void toolStripTextBox_Search_Leave(object sender, EventArgs e)
         {
-            if (toolStripTextBox_Search.Text.Equals(String.Empty))
+            if (txt_search.Text.Equals(String.Empty))
             {
-                toolStripTextBox_Search.Text = "Search...";
+                txt_search.Text = "Search...";
 
-                toolStripTextBox_Search.ForeColor = SystemColors.InactiveCaption;
+                txt_search.ForeColor = SystemColors.InactiveCaption;
             }
         }
 
@@ -150,42 +185,46 @@ namespace LuceneExplorer
             // Clear các item hiển thị trên listview trước đó
             listView.Items.Clear();
 
-            // Hiển thị các THƯ MỤC trong ListView
-            foreach (DirectoryInfo subDirectory in currentDirectory.GetDirectories())
+            if(currentDirectory != null)
             {
-                // Name - 1st Column
-                ListViewItem listViewItem = listView.Items.Add(subDirectory.Name);
-                listViewItem.Tag = subDirectory; // Đưa dữ liệu của subDirectory vào item
-                listViewItem.ImageIndex = 0; // chọn image của item (đã được lưu vào listView.SmallImageList)
+                // Hiển thị các THƯ MỤC trong ListView
+                foreach (DirectoryInfo subDirectory in currentDirectory.GetDirectories())
+                {
+                    // Name - 1st Column
+                    ListViewItem listViewItem = listView.Items.Add(subDirectory.Name);
+                    listViewItem.Tag = subDirectory; // Đưa dữ liệu của subDirectory vào item
+                    listViewItem.ImageIndex = 0; // chọn image của item (đã được lưu vào listView.SmallImageList)
 
-                // Date Modified - 2nd Column
-                listViewItem.SubItems.Add(subDirectory.LastWriteTime.ToString()); // Ngày sửa đổi gần nhất
+                    // Date Modified - 2nd Column
+                    listViewItem.SubItems.Add(subDirectory.LastWriteTime.ToString()); // Ngày sửa đổi gần nhất
 
-                // Type - 3rd Column
-                listViewItem.SubItems.Add("Folder"); // Loại tập tin
+                    // Type - 3rd Column
+                    listViewItem.SubItems.Add("Folder"); // Loại tập tin
 
-                // Size - 4nd
-                listViewItem.SubItems.Add(""); // TO-DO: Kích thước tập tin
+                    // Size - 4nd
+                    listViewItem.SubItems.Add(""); // TO-DO: Kích thước tập tin
+                }
+
+                // Hiển thị các FILE trong ListView
+                foreach (FileInfo file in currentDirectory.GetFiles())
+                {
+                    // Name - 1st Column
+                    ListViewItem listViewItem = listView.Items.Add(file.Name);
+                    listViewItem.Tag = file; // Lưu trữ data của File vào mỗi item
+                    listViewItem.ImageIndex = 1; // chọn image của item (đã được lưu vào listView.SmallImageList)
+
+                    // Date Modified - 2nd Column
+                    listViewItem.SubItems.Add(file.LastWriteTime.ToString()); // Ngày sửa đổi gần nhất
+
+                    // Type - 3rd Column
+                    listViewItem.SubItems.Add("File"); // Loại tập tin
+
+                    // Size - 4nd
+                    listViewItem.SubItems.Add(file.Length.ToString()); // TO-DO: Kích thước tập tin
+                }
+
             }
-
-            // Hiển thị các FILE trong ListView
-            foreach (FileInfo file in currentDirectory.GetFiles())
-            {
-                // Name - 1st Column
-                ListViewItem listViewItem = listView.Items.Add(file.Name);
-                listViewItem.Tag = file; // Lưu trữ data của File vào mỗi item
-                listViewItem.ImageIndex = 1; // chọn image của item (đã được lưu vào listView.SmallImageList)
-
-                // Date Modified - 2nd Column
-                listViewItem.SubItems.Add(file.LastWriteTime.ToString()); // Ngày sửa đổi gần nhất
-
-                // Type - 3rd Column
-                listViewItem.SubItems.Add("File"); // Loại tập tin
-
-                // Size - 4nd
-                listViewItem.SubItems.Add(file.Length.ToString()); // TO-DO: Kích thước tập tin
-            }
-
+            
             // Tự động auto size cột listview
             listView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
         }
@@ -263,6 +302,69 @@ namespace LuceneExplorer
         private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             OpenDirectory();
+        }
+
+        private void toolStripTextBox_Search_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Enter)
+            {
+                if(!txt_search.Text.Equals(String.Empty))
+                {
+                    List<Location> search_results = LuceneAccess.SearchQuery(txt_search.Text.Trim());
+
+                    // Hiển thị lên listview
+                    OpenLocations(search_results);
+                }
+            }
+        }
+
+        /*
+         * Mở danh sách thư mục tương ứng qua ListView
+         */
+        private void OpenLocations(List<Location> locations)
+        {
+            // Clear các item hiển thị trên listview trước đó
+            listView.Items.Clear();
+
+            if(currentDirectory != null)
+            {
+                txt_Address.Text = "Search Results in " + currentDirectory.Name;
+            }
+            
+            if(Directory.Exists(locations[0].Path))
+            {
+                DirectoryInfo locationInfo = new DirectoryInfo(locations[0].Path);
+                listView.Columns.Add("Path", 200, HorizontalAlignment.Left);
+
+                txt_Address.Text = "Search Results in " + locationInfo.Name;
+
+                // Name - 1st Column
+                ListViewItem listViewItem = listView.Items.Add(locationInfo.Name);
+                listViewItem.Tag = locationInfo; // Đưa dữ liệu của subDirectory vào item
+                listViewItem.ImageIndex = 0; // chọn image của item (đã được lưu vào listView.SmallImageList)
+
+                // Date Modified - 2nd Column
+                listViewItem.SubItems.Add(locationInfo.LastWriteTime.ToString()); // Ngày sửa đổi gần nhất
+
+                // Type - 3rd Column
+                listViewItem.SubItems.Add("Folder"); // Loại tập tin
+
+                // Size - 4nd
+                listViewItem.SubItems.Add(""); // TO-DO: Kích thước tập tin
+
+                // Path - 5th
+                listViewItem.SubItems.Add(locationInfo.FullName);
+            }
+            
+            // Tự động auto size cột listview
+            listView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+        }
+
+        private void txt_search_Click(object sender, EventArgs e)
+        {
+            txt_search.Clear();
+
+            txt_search.ForeColor = Color.Black;
         }
     }
 }
