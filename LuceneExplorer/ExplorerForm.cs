@@ -434,6 +434,19 @@ namespace LuceneExplorer
 
             txt_search.ForeColor = Color.Black;
         }
+
+        private void btn_newFolder_Click(object sender, EventArgs e)
+        {
+            if(Directory.Exists(txt_Address.Text))
+            {
+                Directory.CreateDirectory(txt_Address.Text);            
+            }
+            else
+            {
+                MessageBox.Show("Khong tim thay");
+            }
+            OpenDirectory();
+        }
     }
 }
 
