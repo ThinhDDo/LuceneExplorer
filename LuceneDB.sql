@@ -8,7 +8,8 @@ ISUSE bit not null default 0
 )
 GO
 create table Locations (
-FULLPATH varchar(255) primary key
+NAME varchar(255) primary key,
+FULLPATH varchar(255) 
 )
 GO
 create table ExcludedLocations (

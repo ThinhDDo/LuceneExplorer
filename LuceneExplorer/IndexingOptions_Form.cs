@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -14,18 +15,18 @@ namespace LuceneExplorer
     public partial class IndexingOptions_Form : Form
     {
         DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại
-        TreeNodeCollection locationsIndex = null;
+        List<TreeNode> locationsIndex = null;
         static List<FileType> types = null;
-
+        bool rebuilt = false;
         ArrayList locations = new ArrayList();
+        Thread progressThread;
+        List<Location> locationsForIndex;
 
         public IndexingOptions_Form()
         {
             InitializeComponent();
 
             lbl_done.Visible = false;
-
-            PopulateTreeView();
 
             LoadComponents();
 
@@ -38,34 +39,11 @@ namespace LuceneExplorer
             }
 
             // Danh sách các Locations Index 
-            locations.Add(@"C:\Users\doduy\Downloads");
+            locations.Add(@"C:\Users\doduy\Downloads\Compressed");
             // locations.Add(@"D:\");
-        }
-
-        /*
-         * Hiển thị danh sách các node được check
-         * Default: Truyền tham số là Node chứa thông tin ổ đĩa (vd: C:\, D:\)
-         */
-        private void scanLocationsIndex()
-        {
-            // Hiển thị danh sách Index Locations
-            // Quét ổ đĩa gốc
-            foreach (TreeNode parentNode in treeView_IncludedIndex.Nodes)
-            {
-                GetCheckedNodes(parentNode);
-                if(locationsIndex != null)
-                {
-                    Console.WriteLine("Parent Node: " + parentNode.Name);
-                    foreach (TreeNode node in locationsIndex)
-                    {
-                        Console.WriteLine("\tChild Node: " + node.Name);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Chưa có Locations nào được chọn");
-                }
-            }
+            locationsIndex = new List<TreeNode>();
+            // Mở các thư mục đang được đánh chỉ mục
+            OpenLocations();
         }
 
         /*
@@ -125,74 +103,6 @@ namespace LuceneExplorer
             }
         }
 
-        private void PopulateTreeView()
-        {
-            // Lấy các ổ đĩa trong máy tính - đưa vào trong root node (This PC)
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                if(drive.Name.Equals(@"C:\"))
-                {
-                    TreeNode driveNode = new TreeNode("Local Disk " + drive.Name); // Tạo node với drive.Name là tên ổ đĩa (vd: C:/)
-                    driveNode.Tag = drive.RootDirectory; // Trả về Thư mục gốc (C:\\ và D:\\)
-                    driveNode.ImageIndex = 1;
-                    driveNode.SelectedImageIndex = 1;
-                    treeView_IncludedIndex.Nodes.Add(driveNode);
-                }
-                else
-                {
-                    TreeNode driveNode = new TreeNode(drive.VolumeLabel + " " + drive.Name); // Tạo node với drive.Name là tên ổ đĩa (vd: C:/)
-                    driveNode.Tag = drive.RootDirectory; // Trả về Thư mục gốc (C:\\ và D:\\)
-                    driveNode.ImageIndex = 1;
-                    driveNode.SelectedImageIndex = 1;
-                    treeView_IncludedIndex.Nodes.Add(driveNode);
-                }
-            }
-        }
-
-        private void treeView_IncludedIndex_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            TreeNode selectedNode = treeView_IncludedIndex.SelectedNode;
-            if (selectedNode.Tag.GetType() == typeof(DirectoryInfo)) // Kiểm tra Node hiện tại có phải là Thư mục hay không
-            {
-                // Bỏ chọn node trước đó
-                selectedNode.Nodes.Clear();
-
-                // Thêm các node vào thư mục con
-                DirectoryInfo dir = (DirectoryInfo)selectedNode.Tag;
-
-                // Lấy tất cả các thư mục, files bằng method: GetDirectories()
-                // Thêm node con vào node hiện tại đang chọn, 
-                // nhấp vào dấu cộng để hiển thị các node con
-                try
-                {
-                    foreach (DirectoryInfo subDirectory in dir.GetDirectories())
-                    {
-                        TreeNode subNode = new TreeNode(subDirectory.Name);
-                        subNode.Tag = subDirectory; // Chứa dữ liệu của treenode
-                        subNode.ImageIndex = 2;
-                        subNode.SelectedImageIndex = 3;
-                        selectedNode.Nodes.Add(subNode);
-                    }
-
-                    // Hiển thị bên list view
-                    // Đưa dữ liệu của node đang chọn vào biến toàn cục
-                    currentDirectory = dir;
-                }
-                catch (UnauthorizedAccessException uae)
-                {
-                    // Reset lại node đã có
-                    //selectedNode.Nodes.Clear();
-                    MessageBox.Show("Không có quyền truy cập", "Thông báo");
-                }
-            }
-            else // Nếu không phải thư mục
-            {
-                ; // Do nothing
-            }
-
-            // Tự động mở rộng Node khi chọn
-            selectedNode.Expand();
-        }
 
         private void btn_addType_Click(object sender, EventArgs e)
         {
@@ -277,19 +187,33 @@ namespace LuceneExplorer
 
         private void btn_rebuild_Click(object sender, EventArgs e)
         {
-            Thread progressThread = new Thread(() =>
+            if(!DbAccess.GetLocationByName("Index").Path.Equals(String.Empty))
             {
-                showProgress();
-            });
-            progressThread.Start();
-            LuceneAccess.Initiate(locations);
-            progressBar_Rebuild.Visible = false;
-            lbl_done.Visible = true;
+                progressBar_Rebuild.Visible = true;
+                btn_stop.Visible = true;
+                progressThread = new Thread(new ThreadStart(Build_Index));
+                progressThread.Start();
+            }else
+            {
+                MessageBox.Show("Bạn chưa chọn nơi lưu trữ Index");
+            }
+            
         }
 
-        private void showProgress()
+        private void Build_Index()
         {
-            progressBar_Rebuild.Visible = true;
+            rebuilt = LuceneAccess.Initiate(locations);
+            if(rebuilt)
+            {
+                this.progressBar_Rebuild.Invoke(new MethodInvoker(delegate
+                {
+                    progressBar_Rebuild.Visible = false;
+                }));
+                this.btn_stop.Invoke(new MethodInvoker(delegate
+                {
+                    btn_stop.Visible = false;
+                }));
+            }
         }
 
         private void treeView_IncludedIndex_AfterCheck(object sender, TreeViewEventArgs e)
@@ -297,23 +221,91 @@ namespace LuceneExplorer
             /*DirectoryInfo currentDirectoryInfo = (DirectoryInfo)e.Node.Tag;
             Console.WriteLine(currentDirectoryInfo.FullName, "Node selected");
             Console.WriteLine("Its child nodes: ");*/
-            if(e.Node.Checked)
+            if(e.Node != null)
             {
-                locationsIndex.Add(e.Node);
-                foreach (TreeNode node in e.Node.Nodes)
+                if (e.Node.Checked)
                 {
-                    node.Checked = e.Node.Checked;
+                    locationsIndex.Add(e.Node);
+                    Console.WriteLine("Node Added");
+                    foreach (TreeNode node in e.Node.Nodes)
+                    {
+                        node.Checked = e.Node.Checked;
+                    }
+                }
+                if (!e.Node.Checked && locationsIndex.Contains(e.Node))
+                {
+                    locationsIndex.Remove(e.Node);
+                    Console.WriteLine("Node Removed");
                 }
             }
-            if(!e.Node.Checked && locationsIndex.Contains(e.Node))
+        }
+
+        private void btn_stop_Click(object sender, EventArgs e)
+        {
+            progressThread.Abort();
+            progressBar_Rebuild.Visible = false;
+            btn_stop.Visible = false;
+        }
+
+        private void btn_openIndexDialog_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog indexDialog = new FolderBrowserDialog();
+
+            if (indexDialog.ShowDialog() == DialogResult.OK)
             {
-                locationsIndex.Remove(e.Node);
+                if(!indexDialog.SelectedPath.Equals(String.Empty))
+                {
+                    DbAccess.UpdateLocation(new Location { Name = "Index", Path = indexDialog.SelectedPath });
+                }
+            }
+        }
+
+        private void btn_OpenIndex_Click(object sender, EventArgs e)
+        {
+            Location location = DbAccess.GetLocationByName("Index");
+            if(!location.Path.Equals(String.Empty))
+            {
+                if(Directory.Exists(location.Path))
+                {
+                    Process.Start("explorer.exe", location.Path);
+                } else
+                {
+                    MessageBox.Show("Thư mục không tồn tại");
+                }
+            } else
+            {
+                MessageBox.Show("Bạn chưa chọn thư mục Index");
             }
         }
 
         private void btn_addIndex_Click(object sender, EventArgs e)
         {
-            
+            FolderBrowserDialog newLocationDialog = new FolderBrowserDialog();
+            if (newLocationDialog.ShowDialog() == DialogResult.OK)
+            {
+                if (!newLocationDialog.SelectedPath.Equals(String.Empty))
+                {
+                    string newLocationPath = newLocationDialog.SelectedPath;
+                    if(Directory.Exists(newLocationPath))
+                    {
+                        Location newLocation = new Location { Name = Path.GetFileName(newLocationPath), Path = newLocationPath };
+                        DbAccess.SetLocation(newLocation);
+                    }
+                }
+            }
+            OpenLocations();
+        }
+
+        private void OpenLocations()
+        {
+            listViewLocations.Items.Clear();
+            locationsForIndex = DbAccess.GetLocations();
+            foreach (Location location in locationsForIndex)
+            {
+                Console.WriteLine("Path: {0}", location.Path);
+                ListViewItem item = listViewLocations.Items.Add(location.Name);
+                item.SubItems.Add(location.Path);
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
+using LuceneExplorer.database;
 using LuceneExplorer.models;
 using System;
 using System.Collections;
@@ -15,9 +16,9 @@ namespace LuceneExplorer.config
     public class LuceneAccess
     {
         // Path to store index folder
-        static DirectoryInfo indexDirIndex = new DirectoryInfo(@"C:\Index");
+        static DirectoryInfo indexDirIndex = null;
         static List<string> file_types = new List<string>();
-        
+        static Location locationIndexSaving = null;
         /*
          * Khởi tạo các thành phần chính cho Bộ đánh chỉ mục:
          * 1.. Bộ phân tích
@@ -27,6 +28,10 @@ namespace LuceneExplorer.config
          */
         public static bool Initiate(ArrayList locations)
         {
+            // Lấy nơi lưu trữ index
+            locationIndexSaving = DbAccess.GetLocationByName("Index");
+            indexDirIndex = new DirectoryInfo(locationIndexSaving.Path);
+
             // Xử lý stopword, indexing.
             using (var analyzer = new StandardAnalyzer(Version.LUCENE_29))
             {
@@ -84,8 +89,8 @@ namespace LuceneExplorer.config
              */
 
             document.Add(new Field("Filename", Path.GetFileName(path), Field.Store.YES, Field.Index.ANALYZED));
-            document.Add(new Field("Type", "folder", Field.Store.YES, Field.Index.NO)); // TODO: Test this
-            document.Add(new Field("Path", path, Field.Store.YES, Field.Index.NO)); // TODO: Test this
+            document.Add(new Field("Type", "folder", Field.Store.YES, Field.Index.NO)); 
+            document.Add(new Field("Path", path, Field.Store.YES, Field.Index.NO)); 
             
             indexWriter.AddDocument(document);
 
@@ -146,7 +151,7 @@ namespace LuceneExplorer.config
                 {
                     var foundDoc = search.Doc(hit.Doc);
                     Console.WriteLine("Folder: {0}, Path: {1}", foundDoc.Get("Filename"), foundDoc.Get("Path"));
-                    results.Add(new Location { Path = foundDoc.Get("Path") });
+                    results.Add(new Location { Name = foundDoc.Get("Filename"), Path = foundDoc.Get("Path") });
                 }
                 return results;
                 /*for(int hit_idx=0; hit_idx < hits.Length; hit_idx++)
