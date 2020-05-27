@@ -330,10 +330,19 @@ namespace LuceneExplorer
             // path strings, use the System.IO.Path class.
             System.IO.Directory.Move(@"F:\copy-src\", @"F:\copy-des\");
         }
-        
+
         /*
          * Xử lý chức năng Delete folder hoặc file: Di chuyen vao Recycle Bin
          */
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Console.WriteLine(currentFileInfo.FullName);
+            if (File.Exists(currentFileInfo.FullName))
+            {
+                FileSystem.DeleteFile(currentFileInfo.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
+            }
+            OpenDirectory();
+        }
         #endregion
 
         private void listView_SelectedIndexChanged(object sender, EventArgs e)
@@ -359,16 +368,6 @@ namespace LuceneExplorer
 
         private void btn_refresh_Click(object sender, EventArgs e)
         {
-            OpenDirectory();
-        }
-
-        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Console.WriteLine(currentFileInfo.FullName);
-            if (File.Exists(currentFileInfo.FullName))
-            {
-                FileSystem.DeleteFile(currentFileInfo.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
-            }
             OpenDirectory();
         }
 

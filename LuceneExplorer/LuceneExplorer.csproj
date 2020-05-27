@@ -89,6 +89,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ExplorerForm.resx">
       <DependentUpon>ExplorerForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="IndexingOptions_Form.resx">
       <DependentUpon>IndexingOptions_Form.cs</DependentUpon>
@@ -118,6 +119,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\refresh_btn.png" />
     <None Include="resources\add.png" />
     <None Include="resources\delete.png" />
     <None Include="resources\add1.png" />
