@@ -233,7 +233,7 @@ namespace LuceneExplorer
             // Tự động auto size cột listview
             listView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
         }
-
+        //
         /*
          * Double Click để mở thư mục trong ListView
          */
