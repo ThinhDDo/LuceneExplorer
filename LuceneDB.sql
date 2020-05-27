@@ -7,5 +7,18 @@ TENTYPE varchar(20) primary key,
 ISUSE bit not null default 0
 )
 GO
-insert into FileType values ('json', 0)
+create table Locations (
+NAME varchar(255) primary key,
+FULLPATH varchar(255) 
+)
+GO
+create table ExcludedLocations (
+EXCLUDEDPATH varchar(255) primary key,
+PARENT varchar(255) not null,
+FOREIGN KEY(PARENT) REFERENCES Locations(FULLPATH) on update cascade on delete cascade
+)
+
+DROP TABLE LOCATIONS 
+GO
+DROP TABLE ExcludedLocations
 
