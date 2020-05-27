@@ -15,13 +15,18 @@ using System.Windows.Forms;
 using System.Drawing;
 using Microsoft.Office.Interop.PowerPoint;
 using Microsoft.Office.Core;
+using System.Collections;
+using System.Diagnostics;
+using Microsoft.VisualBasic.FileIO;
 
 namespace LuceneExplorer
 {
     public partial class ExplorerForm : System.Windows.Forms.Form
     {
-        DirectoryInfo currentDirectory; // Biến toàn cục cho thư chọn hiện tại 
+        DirectoryInfo currentDirectory; // Biến toàn cục cho thư muc chọn hiện tại 
         FileInfo currentFileInfo; // Biến toàn cục cho file chọn hiện tại
+        Stack stackCurrentPath;
+
         public ExplorerForm()
         {
             InitializeComponent();
@@ -104,7 +109,7 @@ namespace LuceneExplorer
                 
                 // Thêm các node vào thư mục con
                 DirectoryInfo dir = (DirectoryInfo)selectedNode.Tag;
-
+              
                 // Lấy tất cả các thư mục, files bằng method: GetDirectories()
                 // Thêm node con vào node hiện tại đang chọn, 
                 // nhấp vào dấu cộng để hiển thị các node con
@@ -193,10 +198,12 @@ namespace LuceneExplorer
         /*
          * Double Click để mở thư mục trong ListView
          */
+        #region Open File funtion
         private void listView_DoubleClick_1(object sender, EventArgs e)
         {
             if (listView.SelectedItems[0].Tag.GetType() == typeof(DirectoryInfo)) {
                 currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
+                txt_Address.Text = currentDirectory.FullName.Replace("This PC\\", "").Replace(@"\\", @"\");
                 OpenDirectory();
             } 
             else
@@ -221,24 +228,16 @@ namespace LuceneExplorer
                     Microsoft.Office.Interop.PowerPoint.Application pp = new Microsoft.Office.Interop.PowerPoint.Application();
                     Presentation document = pp.Presentations.Open(currentFileInfo.FullName, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoTrue);
                     pp.Visible = MsoTriState.msoTrue;
-
                 }
-                else if(){
-
+                else if(currentFileInfo.Exists)
+                {
+                    Process.Start(currentFileInfo.FullName);                  
                 }
 
             }
             // OpenDirectory();
         }
-
-        /*
-         * Xử lý chức năng Delete folder hoặc file: Di chuyen vao Recycle Bin
-         */
-        private void deleteToolStripMenuItem_Click_1(object sender, EventArgs e)
-        {
-            //currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
-            MessageBox.Show(currentDirectory.FullName);
-        }
+        #endregion
 
         /*
          * Xử lý Right Click trong ListView cho các chức năng phụ
@@ -265,8 +264,73 @@ namespace LuceneExplorer
             this.Show();
         }
 
-        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        #region Copy,Cut,Delete,Paste function
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            string fileName = "test.txt";
+            string sourcePath = @"F:\copy-src";
+            string targetPath = @"F:\copy-des";
+
+            string sourceFile = System.IO.Path.Combine(sourcePath, fileName);
+            string destFile = System.IO.Path.Combine(targetPath, fileName);
+
+            System.IO.Directory.CreateDirectory(targetPath);
+
+            System.IO.File.Copy(sourceFile, destFile, true);
+        }
+
+        private void CutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string sourceFile = @"F:\copy-src\test.txt";
+            string destinationFile = @"F:\copy-des\test.txt";
+
+            // To move a file or folder to a new location:
+            System.IO.File.Move(sourceFile, destinationFile);
+
+            // To move an entire directory. To programmatically modify or combine
+            // path strings, use the System.IO.Path class.
+            System.IO.Directory.Move(@"F:\copy-src\", @"F:\copy-des\");
+        }
+        
+        /*
+         * Xử lý chức năng Delete folder hoặc file: Di chuyen vao Recycle Bin
+         */
+        #endregion
+
+        private void listView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //ListViewItem item = listView.SelectedItems[0];
+            //currentFileInfo = new FileInfo(item.Name);
+            if (listView.SelectedItems[0].Tag.GetType() == typeof(FileInfo))
+            {
+                currentFileInfo = (FileInfo)listView.SelectedItems[0].Tag;
+            }
+           
+        }
+
+        private void backButton_Click(object sender, EventArgs e)
+        {
+            currentDirectory = (DirectoryInfo)listView.SelectedItems[0].Tag;
+            stackCurrentPath.Push(currentDirectory.FullName);
+            if (btn_back.CheckOnClick == true)
+            {
+                //stackcurrentpath.pop();
+            }
+        }
+
+        private void btn_refresh_Click(object sender, EventArgs e)
+        {
+            OpenDirectory();
+        }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Console.WriteLine(currentFileInfo.FullName);
+            if (File.Exists(currentFileInfo.FullName))
+            {
+                FileSystem.DeleteFile(currentFileInfo.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
+            }
             OpenDirectory();
         }
     }
