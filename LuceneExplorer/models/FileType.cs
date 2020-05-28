@@ -8,11 +8,6 @@ namespace LuceneExplorer.models
 {
     public class FileType
     {
-        public FileType(string tenType, bool isuse)
-        {
-            this.TenType = tenType;
-            this.IsUse = isuse;
-        }
 
         public string TenType { get; set; } = "";
         public bool IsUse { get; set; } = false;
@@ -20,6 +15,16 @@ namespace LuceneExplorer.models
         public override string ToString()
         {
             return "[" + TenType + "," + IsUse + "]";
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj.GetType() == typeof(FileType))
+            {
+                FileType temp = (FileType)obj;
+                return TenType.Equals(temp.TenType) && (IsUse == temp.IsUse);
+            }
+            return false;
         }
     }
 }

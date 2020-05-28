@@ -55,7 +55,7 @@ namespace LuceneExplorer.database
                         while (sdr.Read())
                         {
                             // Console.WriteLine("{0},{1}", sdr.GetString(0), sdr.GetBoolean(1));
-                            listType.Add(new FileType(sdr.GetString(0), sdr.GetBoolean(1)));
+                            listType.Add(new FileType { TenType = sdr.GetString(0), IsUse = sdr.GetBoolean(1)});
                         }
                     }
                     else
@@ -232,6 +232,29 @@ namespace LuceneExplorer.database
                 }
             }
             return results;
+        }
+
+        public static void DeleteLocation(Location location)
+        {
+            using (SqlConnection conn = DbConfiguration.GetDBConnection())
+            {
+                conn.Open();
+                var query = "DELETE FROM Locations where NAME = @name";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@name", location.Name);
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (SqlException sqle)
+                    {
+                        Console.WriteLine("Delete Location thất bại");
+                    }
+
+                }
+            }
         }
     }
 }

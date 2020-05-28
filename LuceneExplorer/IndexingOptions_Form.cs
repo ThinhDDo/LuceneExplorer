@@ -193,7 +193,8 @@ namespace LuceneExplorer
                 btn_stop.Visible = true;
                 progressThread = new Thread(new ThreadStart(Build_Index));
                 progressThread.Start();
-            }else
+            }
+            else
             {
                 MessageBox.Show("Bạn chưa chọn nơi lưu trữ Index");
             }
@@ -306,6 +307,26 @@ namespace LuceneExplorer
                 ListViewItem item = listViewLocations.Items.Add(location.Name);
                 item.SubItems.Add(location.Path);
             }
+        }
+
+        private void btn_deleteIndex_Click(object sender, EventArgs e)
+        {
+            if(listViewLocations.SelectedItems.Count != 0)
+            {
+                foreach (ListViewItem item in listViewLocations.SelectedItems)
+                {
+                    Console.WriteLine("Deleted Index Folder: " + item.SubItems[1].Text);
+                    DbAccess.DeleteLocation(new Location { Name = item.Text });
+
+                    // TODO: Sau khi delete đường dẫn, chuyển qua delete Index chỉ mục với đường đãn đó.
+                }
+                OpenLocations();
+            }
+        }
+
+        private void listViewLocations_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

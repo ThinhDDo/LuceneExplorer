@@ -1,16 +1,17 @@
 ﻿using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using LuceneExplorer.database;
 using LuceneExplorer.models;
-using Spire.Pdf;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using TikaOnDotNet.TextExtraction;
 using Version = Lucene.Net.Util.Version;
 
 namespace LuceneExplorer.config
@@ -18,9 +19,10 @@ namespace LuceneExplorer.config
     public class LuceneAccess
     {
         // Path to store index folder
-        static DirectoryInfo indexDirIndex = null;
-        static List<string> file_types = new List<string>();
-        static Location locationIndexSaving = null;
+        static List<FileType> file_types = DbAccess.GetTypes();
+        static Location locationIndexSaving = DbAccess.GetLocationByName("Index");
+        static DirectoryInfo indexDirIndex = new DirectoryInfo(locationIndexSaving.Path);
+        static Microsoft.Office.Interop.Word.Application word = new Microsoft.Office.Interop.Word.Application(); // Word APplication
         /*
          * Khởi tạo các thành phần chính cho Bộ đánh chỉ mục:
          * 1.. Bộ phân tích
@@ -30,12 +32,8 @@ namespace LuceneExplorer.config
          */
         public static bool Initiate()
         {
-            // Lấy nơi lưu trữ index
-            locationIndexSaving = DbAccess.GetLocationByName("Index");
-            indexDirIndex = new DirectoryInfo(locationIndexSaving.Path);
-
             // Xử lý stopword, indexing.
-            using (var analyzer = new StandardAnalyzer(Version.LUCENE_29))
+            using (var analyzer = new StandardAnalyzer(Version.LUCENE_29, new FileInfo(@"..\..\resources\stopwords\stopwords.txt")))
             {
                 // TODO: User có thể chọn nơi lưu trữ Index (Default: Ổ C)
                 using (var indexDir = FSDirectory.Open(indexDirIndex.FullName))
@@ -48,7 +46,8 @@ namespace LuceneExplorer.config
                     }
                 }
             }
-            return true;
+            
+            return true; // Condidion Multithread stop.
         }
 
         /*
@@ -57,21 +56,15 @@ namespace LuceneExplorer.config
          */
         public static void ScanLocationsForIndex(List<Location> locations, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter)
         {
-            // TODO: Lấy danh sách các Locations được chọn để thực hiện Index
-            /*foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                if (!drive.Name.Equals(@"C:\"))
-                {
-                    BuildIndexFolders(drive.Name, analyzer, indexDir, indexWriter);
-                }
-            }*/
 
             foreach (Location location in locations)
             {
-                if (!location.Path.Contains(@"RECYCLE.BIN"))
+                if (!location.Name.Contains(@"$RECYCLE.BIN"))
                 {
-                    Console.WriteLine("location: " + location.Name);
-                    BuildIndexFolders(location.Path, analyzer, indexDir, indexWriter);
+                    location.Type = "folder";
+
+                    Console.WriteLine("Root location: " + location.Name);
+                    BuildIndexFolders(location, analyzer, indexDir, indexWriter, 0);
                 }
             }
         }
@@ -80,41 +73,61 @@ namespace LuceneExplorer.config
          * Phương thức đánh chỉ mục các THƯ MỤC
          * Đối với thư mục con sẽ dùng đệ quy để đánh chỉ mục
          */
-        public static void BuildIndexFolders(string path, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter)
+        public static void BuildIndexFolders(Location location, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter, int depth_folder)
         {
-            // TODO: Thực hiện đánh chỉ mục cho path hiện tại
-            Document document = new Document();
+            if(depth_folder == 7)
+            {
+                return;
+            }
 
             // TODO: Update index
             /**
              * Cập nhật Index bằng cách xoá index cũ và thêm index mới
              * Xoá index cũ: Dùng IndexReader để tìm path trong Index hiện tại. Nếu có: Xoá. Nếu không: Thêm
              */
+            // TODO: Thực hiện đánh chỉ mục cho path hiện tại
+            Document document = new Document();
 
-            document.Add(new Field("Name", Path.GetFileName(path), Field.Store.YES, Field.Index.ANALYZED));
-            document.Add(new Field("Type", "folder", Field.Store.YES, Field.Index.NO)); 
-            document.Add(new Field("Path", path, Field.Store.YES, Field.Index.NO)); 
-            
-            indexWriter.AddDocument(document);
+            document.Add(new Field("Name", location.Name, Field.Store.YES, Field.Index.ANALYZED));
+            document.Add(new Field("Type", location.Type, Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Path", location.Path, Field.Store.YES, Field.Index.NO));
+
+            indexWriter.UpdateDocument(new Term("Path", $"{location.Path}"), document);
 
             indexWriter.Optimize();
             indexWriter.Flush(false, false, false);
 
             try
             {
-                if (!path.Contains(@"RECYCLE.BIN"))
+                if (!location.Name.Contains(@"$RECYCLE.BIN"))
                 {
-                    foreach (string folder in System.IO.Directory.GetDirectories(path))
+                    // Đánh chỉ mục tất cả các thư mục con trong thư mục cha
+                    foreach (string folder in System.IO.Directory.GetDirectories(location.Path))
                     {
-                        Console.WriteLine("Thư mục: {0}", Path.GetDirectoryName(folder));
-                        BuildIndexFolders(folder, analyzer, indexDir, indexWriter);
+                        Console.WriteLine("Folder indexing: {0}", Path.GetDirectoryName(folder));
+                        BuildIndexFolders(
+                            new Location { Name = Path.GetFileName(folder), Path = folder, Type = "folder"}, 
+                            analyzer, 
+                            indexDir, 
+                            indexWriter, 
+                            depth_folder++);
+                    }
+                    // Đánh chỉ mục tất cả các file trong thư mục cha
+                    foreach (string file in System.IO.Directory.GetFiles(location.Path))
+                    {
+                        Console.WriteLine("File indexing: {0}", Path.GetDirectoryName(file));
+                        BuildIndexFiles(
+                            new Location { Name = Path.GetFileName(file), Path = file, Type = Path.GetExtension(file) },
+                            analyzer,
+                            indexDir,
+                            indexWriter);
                     }
                 }
 
             }
             catch (UnauthorizedAccessException uae)
             {
-                Console.WriteLine("Không có quyền truy cập: {0}", path);
+                Console.WriteLine("Không có quyền truy cập: {0}", location.Path);
             }
             finally
             {
@@ -128,16 +141,30 @@ namespace LuceneExplorer.config
         public static List<Location> SearchQuery(string keyword)
         {
             // Biến toàn cục: Nơi lưu trữ các index
-
+            Console.WriteLine("\n\n\n\n");
+            Console.WriteLine("Keyword: " + keyword);
             using (var analyzer = new StandardAnalyzer(Version.LUCENE_29))
             {
                 Lucene.Net.Store.Directory indexStore = FSDirectory.Open(indexDirIndex.FullName);
+                if (indexStore.FileExists(IndexWriter.WRITE_LOCK_NAME))
+                {
+                    try
+                    {
+                        indexStore.ClearLock(IndexWriter.WRITE_LOCK_NAME);
+                    }catch(IOException ioe)
+                    {
+                        Console.WriteLine("write.lock are being use by other process");
+                    }
+                    
+                }
 
                 // Truyền query vào IndexSearcher
                 Searcher search = new IndexSearcher(IndexReader.Open(indexStore, true));
 
+                var fields = new[] { "Name", "Type", "Content", "Path" };
+                var queryParser = new MultiFieldQueryParser(Version.LUCENE_29, fields, analyzer);
                 // Tạo truy vấn tìm kiếm
-                Query query = new WildcardQuery(new Term("Filename", $"*{keyword.ToLower()}*"));
+                var query = queryParser.Parse($"{keyword.ToLower()}*");
 
                 /*Bắt đầu tìm kiếm. Có rất nhiều cách tìm kiếm @@
                 Cách 1: Tìm dựa theo số lần xuất hiện*/
@@ -154,7 +181,7 @@ namespace LuceneExplorer.config
                 {
                     var foundDoc = search.Doc(hit.Doc);
                     Console.WriteLine("Folder: {0}, Path: {1}", foundDoc.Get("Name"), foundDoc.Get("Path"));
-                    results.Add(new Location { Name = foundDoc.Get("Name"), Path = foundDoc.Get("Path") , Type = foundDoc.Get("Type")});
+                    results.Add(new Location { Name = foundDoc.Get("Name"), Path = foundDoc.Get("Path"), Type = foundDoc.Get("Type") , Content = foundDoc.Get("Content")});
                 }
                 return results;
                 /*for(int hit_idx=0; hit_idx < hits.Length; hit_idx++)
@@ -176,31 +203,45 @@ namespace LuceneExplorer.config
          * Đánh chỉ mục cho file:
          * Nội dung chỉ mục file bao gồm: Name, Path, Type, Content
          */
-        private static void BuildIndexFiles(string file, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter)
+        private static void BuildIndexFiles(Location location, StandardAnalyzer analyzer, FSDirectory indexDir, IndexWriter indexWriter)
         {
             string toText = "";
             Document document;
 
-            switch (Path.GetExtension(file))
+            FileType temp = new FileType { TenType = location.Type.Replace(".", ""), IsUse = true };
+            bool read = false;
+            foreach(FileType type in file_types)
             {
-                case ".docx":
-                    toText = WordToText(file);
-                    break;
-                case ".pdf":
-                    toText = PdfToText(file);
-                    break;
-                case ".txt":
-                    toText = TxtToText(file);
-                    break;
+                if(type.Equals(temp))
+                {
+                    read = true;
+                }
             }
-
+            if (read)
+            {
+                // Extract all text from document
+                switch (location.Type)
+                {
+                    case ".docx":
+                        toText = WordToText(location.Path);
+                        break;
+                    case ".pdf":
+                        toText = PdfToText(location.Path);
+                        break;
+                    case ".txt":
+                        toText = TxtToText(location.Path);
+                        break;
+                }
+            }
+            
             // File Indexing
             document = new Document();
 
-            document.Add(new Field("Filename", Path.GetFileName(file), Field.Store.YES, Field.Index.NOT_ANALYZED));
-            document.Add(new Field("Path", file, Field.Store.YES, Field.Index.NOT_ANALYZED));
-            document.Add(new Field("Content", toText.ToString().Trim().ToLower(), Field.Store.YES, Field.Index.ANALYZED));
-            indexWriter.AddDocument(document);
+            document.Add(new Field("Name", location.Name, Field.Store.YES, Field.Index.ANALYZED));
+            document.Add(new Field("Type", "file", Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("Path", location.Path, Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("Content", toText.Trim().ToLower(), Field.Store.YES, Field.Index.ANALYZED));
+            indexWriter.UpdateDocument(new Term("Path", $"{location.Path}"), document); 
 
             indexWriter.Optimize();
             indexWriter.Flush(false, false, false);
@@ -208,7 +249,7 @@ namespace LuceneExplorer.config
 
         private static string PdfToText(string fullName)
         {
-            PdfDocument doc = new PdfDocument();
+            /*PdfDocument doc = new PdfDocument();
             doc.LoadFromFile(fullName);
 
             // Initilize StringBuilder Instance
@@ -218,38 +259,53 @@ namespace LuceneExplorer.config
             {
                 toText.Append(doc.Pages[page].ExtractText());
             }
-
-            return toText.ToString();
+            */
+            var text = new TextExtractor().Extract(fullName).Text;
+            return text;
         }
 
         private static string TxtToText(string fullName)
         {
-            StringBuilder toText = new StringBuilder();
+            /*StringBuilder toText = new StringBuilder();
             foreach (string line in File.ReadAllLines(fullName))
             {
                 toText.AppendLine(line);
             }
-            return toText.ToString();
+            return toText.ToString();*/
+            return new TextExtractor().Extract(fullName).Text;
         }
 
         private static string WordToText(string fullName)
         {
-            Microsoft.Office.Interop.Word.Application word = new Microsoft.Office.Interop.Word.Application(); // Word APplication
-            Microsoft.Office.Interop.Word.Document doc = word.Documents.Open(fullName);
-            word.Visible = false;
-
+            /*word.Visible = false;
+            Microsoft.Office.Interop.Word.Document doc;
             // Initilize StringBuilder Instance
             StringBuilder toText = new StringBuilder();
-
-            //Extract Text from Word and Save to StringBuilder Instance
-            foreach (Microsoft.Office.Interop.Word.Section section in doc.Sections)
+            
+            try
             {
-                foreach (Microsoft.Office.Interop.Word.Paragraph paragraph in section.Range.Paragraphs)
+                if (!Path.GetFileName(fullName).StartsWith("~$"))
                 {
-                    toText.AppendLine(paragraph.Range.Text);
+                    doc = word.Documents.Open(fullName);
+                    //Extract Text from Word and Save to StringBuilder Instance
+                    foreach (Microsoft.Office.Interop.Word.Section section in doc.Sections)
+                    {
+                        foreach (Microsoft.Office.Interop.Word.Paragraph paragraph in section.Range.Paragraphs)
+                        {
+                            toText.AppendLine(paragraph.Range.Text);
+                        }
+                    }
                 }
             }
-            return toText.ToString();
+            catch (Exception e)
+            {
+                Console.WriteLine("Open file word failed");
+            } finally
+            {
+                ;
+            }
+            return toText.ToString();*/
+            return new TextExtractor().Extract(fullName).Text;
         }
     }
 }
