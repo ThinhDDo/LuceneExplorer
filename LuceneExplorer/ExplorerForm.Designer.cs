@@ -64,6 +64,8 @@
             this.Modified = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Type = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Size = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Paths = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Contents = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.contextmenu_listview_options = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -71,8 +73,7 @@
             this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.renameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.Paths = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.Contents = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.cb_searchOptions = new System.Windows.Forms.ToolStripComboBox();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.toolStrip_Address.SuspendLayout();
@@ -91,26 +92,26 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
-            this.menuStrip1.Size = new System.Drawing.Size(800, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(800, 30);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(49, 24);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(49, 26);
             this.editToolStripMenuItem.Text = "Edit";
             // 
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(55, 26);
             this.viewToolStripMenuItem.Text = "View";
             // 
             // toolsToolStripMenuItem
@@ -118,7 +119,7 @@
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.indexingOptions_ToolStrip});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(58, 24);
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(58, 26);
             this.toolsToolStripMenuItem.Text = "Tools";
             // 
             // indexingOptions_ToolStrip
@@ -131,7 +132,7 @@
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 26);
             this.helpToolStripMenuItem.Text = "Help";
             // 
             // toolStrip1
@@ -150,8 +151,9 @@
             this.toolStripButton8,
             this.toolStripButton9,
             this.txt_search,
-            this.btn_refresh});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 28);
+            this.btn_refresh,
+            this.cb_searchOptions});
+            this.toolStrip1.Location = new System.Drawing.Point(0, 30);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Padding = new System.Windows.Forms.Padding(1);
             this.toolStrip1.Size = new System.Drawing.Size(800, 33);
@@ -279,10 +281,10 @@
             this.toolStripSeparator3,
             this.txt_Address,
             this.toolStripButton_Go});
-            this.toolStrip_Address.Location = new System.Drawing.Point(0, 61);
+            this.toolStrip_Address.Location = new System.Drawing.Point(0, 63);
             this.toolStrip_Address.Name = "toolStrip_Address";
             this.toolStrip_Address.Padding = new System.Windows.Forms.Padding(1);
-            this.toolStrip_Address.Size = new System.Drawing.Size(800, 29);
+            this.toolStrip_Address.Size = new System.Drawing.Size(800, 31);
             this.toolStrip_Address.TabIndex = 2;
             this.toolStrip_Address.Text = "toolStrip2";
             this.toolStrip_Address.Resize += new System.EventHandler(this.toolStrip_Address_Resize);
@@ -290,13 +292,13 @@
             // toolStripLabel_Address
             // 
             this.toolStripLabel_Address.Name = "toolStripLabel_Address";
-            this.toolStripLabel_Address.Size = new System.Drawing.Size(62, 24);
+            this.toolStripLabel_Address.Size = new System.Drawing.Size(62, 26);
             this.toolStripLabel_Address.Text = "Address";
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 27);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 29);
             // 
             // txt_Address
             // 
@@ -313,7 +315,7 @@
             this.toolStripButton_Go.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton_Go.Image")));
             this.toolStripButton_Go.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton_Go.Name = "toolStripButton_Go";
-            this.toolStripButton_Go.Size = new System.Drawing.Size(29, 24);
+            this.toolStripButton_Go.Size = new System.Drawing.Size(29, 26);
             this.toolStripButton_Go.Text = "toolStripButton10";
             // 
             // panel_Footer
@@ -330,19 +332,19 @@
             // treeView
             // 
             this.treeView.Dock = System.Windows.Forms.DockStyle.Left;
-            this.treeView.Location = new System.Drawing.Point(0, 90);
+            this.treeView.Location = new System.Drawing.Point(0, 94);
             this.treeView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.treeView.Name = "treeView";
-            this.treeView.Size = new System.Drawing.Size(300, 326);
+            this.treeView.Size = new System.Drawing.Size(300, 322);
             this.treeView.TabIndex = 4;
             this.treeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView_AfterSelect);
             // 
             // splitter1
             // 
-            this.splitter1.Location = new System.Drawing.Point(300, 90);
+            this.splitter1.Location = new System.Drawing.Point(300, 94);
             this.splitter1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.splitter1.Name = "splitter1";
-            this.splitter1.Size = new System.Drawing.Size(3, 326);
+            this.splitter1.Size = new System.Drawing.Size(3, 322);
             this.splitter1.TabIndex = 5;
             this.splitter1.TabStop = false;
             // 
@@ -357,10 +359,10 @@
             this.Contents});
             this.listView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView.HideSelection = false;
-            this.listView.Location = new System.Drawing.Point(303, 90);
+            this.listView.Location = new System.Drawing.Point(303, 94);
             this.listView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.listView.Name = "listView";
-            this.listView.Size = new System.Drawing.Size(497, 326);
+            this.listView.Size = new System.Drawing.Size(497, 322);
             this.listView.SmallImageList = this.imageList;
             this.listView.TabIndex = 6;
             this.listView.UseCompatibleStateImageBehavior = false;
@@ -384,6 +386,15 @@
             // Size
             // 
             this.Size.Text = "Size";
+            // 
+            // Paths
+            // 
+            this.Paths.Text = "Path";
+            this.Paths.Width = 100;
+            // 
+            // Contents
+            // 
+            this.Contents.Text = "Content";
             // 
             // imageList
             // 
@@ -436,14 +447,14 @@
             this.renameToolStripMenuItem.Size = new System.Drawing.Size(132, 24);
             this.renameToolStripMenuItem.Text = "Rename";
             // 
-            // Paths
+            // cb_searchOptions
             // 
-            this.Paths.Text = "Path";
-            this.Paths.Width = 100;
-            // 
-            // Contents
-            // 
-            this.Contents.Text = "Content";
+            this.cb_searchOptions.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.cb_searchOptions.BackColor = System.Drawing.SystemColors.InactiveCaption;
+            this.cb_searchOptions.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.cb_searchOptions.Name = "cb_searchOptions";
+            this.cb_searchOptions.Size = new System.Drawing.Size(121, 31);
+            this.cb_searchOptions.Click += new System.EventHandler(this.cb_searchOptions_Click);
             // 
             // ExplorerForm
             // 
@@ -522,6 +533,7 @@
         private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader Paths;
         private System.Windows.Forms.ColumnHeader Contents;
+        private System.Windows.Forms.ToolStripComboBox cb_searchOptions;
     }
 }
 

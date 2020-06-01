@@ -39,6 +39,11 @@ namespace LuceneExplorer
 
             Load_ImagesList();
 
+            cb_searchOptions.Items.Add("Name");
+            cb_searchOptions.Items.Add("Content");
+            cb_searchOptions.Items.Add("Type");
+            cb_searchOptions.SelectedIndex = 0;
+
             Console.WriteLine(userName);
         }
 
@@ -520,6 +525,11 @@ namespace LuceneExplorer
 
         private void txt_search_TextChanged(object sender, EventArgs e)
         {
+        }
+
+        private void cb_searchOptions_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
